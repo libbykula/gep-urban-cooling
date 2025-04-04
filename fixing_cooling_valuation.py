@@ -1,6 +1,7 @@
 # Libby Kula
-# 11/7/2024
+# 4/4/2025
 # Purpose: Fixing Urban InVEST urban cooling valuation results using cooling degree days method from Roxon et al., 2020
+# Update: Using NatCapTEEMS base data
 
 import logging
 import numpy as np
@@ -30,7 +31,7 @@ from shapely import LineString
 import statsmodels.api as sm
 from itertools import combinations
 
-os.chdir('C:/Users/kibby/OneDrive/Desktop/Research/DOI/')
+base_data_dir = 'G:/Shared drives/NatCapTEEMs/Files/base_data/submissions'
 
 def monthly_temp_degC_to_cdd(temp_series):
     # Convert average temperature from Celsius to Fahrenheit
@@ -55,7 +56,7 @@ def monthly_temp_degC_to_cdd(temp_series):
 
     return cdd_m
 
-temp_data = pd.read_csv('Data/Results/Metros/avg_temp_metros.csv') 
+temp_data = pd.read_csv(os.path.join(base_data_dir, 'Results/Metros/avg_temp_metros.csv'))
 temp_data['cdd_m'] = monthly_temp_degC_to_cdd(temp_data['Average temp (degC)'])
 
 # Add together the three months' CDD_m to get annual CDD 
@@ -69,7 +70,7 @@ energy_consump = {}
 for c in metro_list:
     c_orig = c
     c = re.sub(r'\/', '-', c)
-    metro_consump = pd.read_csv('Data/Energy Consumption Table/Metro tables/' + c + '.csv')
+    metro_consump = pd.read_csv(os.path.join(base_data_dir, 'Energy Consumption Table/Metro tables/' + c + '.csv'))
     kwh_m2_year = metro_consump['consumption'].iloc[0]
     energy_consump[c_orig] = kwh_m2_year
 
@@ -85,11 +86,10 @@ result = sm.OLS(energy_cdd_df['energy_consump'], energy_cdd_df['cdd']).fit()
 
 # Saving the coefficient as the cooling gradient m_c
 mc = result.params[0]
-print(mc)
 
 ### Fixing my energy savings valuation ### 
 
-results_path = 'InVEST Results/cooling workspace/'
+results_path = os.path.join(base_data_dir, 'InVEST Results/cooling workspace/')
 metro_list = [
     foldername
     for foldername in os.listdir(results_path) 
@@ -97,9 +97,9 @@ metro_list = [
 
 metro_list.sort()
 
-uhi_data = pd.read_csv('Data/Results/uhi_4_29_2024_v03.csv')
-consump_fixed_table = pd.read_csv('Data/Results/Metros/consumption_fixed.csv')
-build_heights = pd.read_csv('Data/Energy Consumption Table/Continental_building_height/OutputData_CombinedModel/us/Metros/metros_build_height.csv')
+uhi_data = pd.read_csv(os.path.join(base_data_dir, 'Results/uhi_4_29_2024_v03.csv'))
+consump_fixed_table = pd.read_csv(os.path.join(base_data_dir, 'Results/Metros/consumption_fixed.csv'))
+build_heights = pd.read_csv(os.path.join(base_data_dir, 'Energy Consumption Table/Continental_building_height/OutputData_CombinedModel/us/Metros/metros_build_height.csv'))
 
 # for c in metro_list:
 def fix_cooling_fixed(c):
@@ -108,22 +108,22 @@ def fix_cooling_fixed(c):
     c_orig = c
     c = re.sub(r'\/', '-', c) # Replacing slashes with dashes for paths' sake
 
-    prev_energy_table = pd.read_csv('Data/Energy Consumption Table/Metro tables/' + c + '.csv')
+    prev_energy_table = pd.read_csv(os.path.join(base_data_dir, 'Energy Consumption Table/Metro tables/' + c + '.csv'))
     prev_consump = prev_energy_table['consumption'].iloc[0]
 
     filtered_df = build_heights[build_heights['metro'] == c_orig]
     avg_floors = filtered_df['avg_build_floors'].iloc[0] # need to include to get from consumption by floor area to footprint area
 
-    metro_consump = pd.read_csv('Data/Energy Consumption Table/Metro tables/' + c + '.csv')
+    metro_consump = pd.read_csv(os.path.join(base_data_dir, 'Energy Consumption Table/Metro tables/' + c + '.csv'))
     building_cost = metro_consump['cost'].iloc[0]
     
     for month in ['06', '07', '08']:
-        build_temp_df = pd.read_csv('Data/Results/Metros/building_avg_temps/build_temp_w_nat_' + c + '_' + month + '.csv')
+        build_temp_df = pd.read_csv(os.path.join(base_data_dir, 'Results/Metros/building_avg_temps/build_temp_w_nat_' + c + '_' + month + '.csv'))
         for year in ['2001', '2011', '2021']:
             results_dict = {}
             
-            building_path = 'InVEST Results/cooling workspace/' + c + '/buildings_with_stats_' + c + '_' + year + '_' + month + '.shp'
-            hm_path = 'InVEST Results/cooling workspace/' + c + '/hm_' + c + '_' + year + '_' + month + '.tif'
+            building_path = os.path.join(base_data_dir, 'InVEST Results/cooling workspace/' + c + '/buildings_with_stats_' + c + '_' + year + '_' + month + '.shp')
+            hm_path = os.path.join(base_data_dir, 'InVEST Results/cooling workspace/' + c + '/hm_' + c + '_' + year + '_' + month + '.tif')
              
             buildings_gdf = gpd.read_file(building_path)
             buildings_gdf = buildings_gdf.to_crs('EPSG:5070')
