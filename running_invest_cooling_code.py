@@ -45,7 +45,7 @@ metro_list = vector_gdf['NAME_right'].unique().tolist()
 metro_list.sort()
 
 # Done list 
-results_path = '../InVEST Results/cooling workspace/' # EK do this
+results_path = os.path.join(base_data_dir, 'InVEST Results/cooling workspace/')
 done_list = [
     foldername
     for foldername in os.listdir(results_path) 
@@ -60,7 +60,7 @@ def clip_to_metro(ras, c):
     raster_dataset = gdal.Open(ras)
     if os.path.exists(re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), ras)) == 0:
         gdal.Warp(re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), ras), 
-                raster_dataset, cutlineDSName='Polygon_vectors/Metros/' + c + '.gpkg', cropToCutline=True)
+                raster_dataset, cutlineDSName=os.path.join(base_data_dir, 'Polygon_vectors/Metros/' + c + '.gpkg'), cropToCutline=True)
     if os.path.exists(re.sub(r'\.(.*?)$', r'_clipped_{}_nad83.\1'.format(c), ras)) == 0:
         gdal.Warp(re.sub(r'\.(.*?)$', r'_clipped_{}_nad83.\1'.format(c), ras), 
             re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), ras), dstSRS='EPSG:5070')
@@ -80,15 +80,15 @@ def calc_uhi(c_orig, month):
     rural_ref_buffer['geometry'] = buffers
     rural_ref_buffer.to_file(os.path.join(base_data_dir, 'Polygon_vectors/rural_ref' + c + '.shp'))
     rural_ref_name = rural_ref_buffer['citystate'].iloc[0]
-    rural_ref.to_file('Polygon_vectors/Metros/rural_refs/rural_ref' + c + '.shp') 
+    rural_ref.to_file(os.path.join(base_data_dir, 'Polygon_vectors/Metros/rural_refs/rural_ref' + c + '.shp'))
     rural_ref_name = rural_ref['citystate'].iloc[0]
     
     temp_mean = gdal.Open(raster_paths[1])
     gdal.Warp(re.sub(r'\.(.*?)$', r'_rural_ref_{}.\1'.format(c), raster_paths[1]), 
-                        temp_mean, cutlineDSName='Polygon_vectors/Metros/rural_refs/rural_ref' + c + '.shp', cropToCutline=True) 
+                        temp_mean, cutlineDSName=os.path.join(base_data_dir, 'Polygon_vectors/Metros/rural_refs/rural_ref' + c + '.shp'), cropToCutline=True) 
                 
     rural_ref_stats = pygeo.zonal_statistics(base_raster_path_band = (re.sub(r'\.(.*?)$', r'_rural_ref_{}.\1'.format(c), raster_paths[1]), 1),
-                                                        aggregate_vector_path = 'Polygon_vectors/Metros/rural_refs/rural_ref' + c + '.shp',
+                                                        aggregate_vector_path = os.path.join(base_data_dir, 'Polygon_vectors/Metros/rural_refs/rural_ref' + c + '.shp'),
                                                         ignore_nodata = True)
     rural_ref_temp = rural_ref_stats[0]['sum']/rural_ref_stats[0]['count']
 
@@ -97,7 +97,7 @@ def calc_uhi(c_orig, month):
     clip_to_metro(raster_paths[1], c)
 
     urban_ref_stats = pygeo.zonal_statistics(base_raster_path_band = (re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), raster_paths[1]), 1),
-                                                        aggregate_vector_path ='Polygon_vectors/Metros/' + c + '.shp', 
+                                                        aggregate_vector_path = os.path.join(base_data_dir, 'Polygon_vectors/Metros/' + c + '.shp'), 
                                                         ignore_nodata = True)
     urban_max = urban_ref_stats[0]['max'] # using max of the averages here to get a baseline UHI change
     uhi = urban_max - rural_ref_temp
@@ -107,15 +107,15 @@ def calc_uhi_buffered(c_orig, month, buffer_size):
     metro_gdf = vector_gdf[vector_gdf['NAME_right'] == c_orig] 
     metro_gdf = metro_gdf.to_crs('EPSG:5070')
     c = re.sub(r'\/', '-', c_orig)  
-    raster_paths = ['Evapotranspiration/Global-ET0_monthly_v3/Global-ET0_v3_monthly/et0_V3_' + month + '_aligned_wgs84.tif', 
-                    'Reference Air Temperature/PRISM_tmean_30yr_normal_800mM4_' + month + '_bil/PRISM_tmean_30yr_normal_800mM4_' + month + '_bil_wgs84.bil'] 
+    raster_paths = [os.path.join(base_data_dir, 'Evapotranspiration/Global-ET0_monthly_v3/Global-ET0_v3_monthly/et0_V3_' + month + '_aligned_wgs84.tif'), 
+                    os.path.join(base_data_dir, 'Reference Air Temperature/PRISM_tmean_30yr_normal_800mM4_' + month + '_bil/PRISM_tmean_30yr_normal_800mM4_' + month + '_bil_wgs84.bil')] 
         
     # adding buffers to metro_gdf for all cities to take care of those with small reference areas 
     buffers = metro_gdf.geometry.buffer(distance = buffer_size)
     buffered_minus_original = buffers.difference(metro_gdf.geometry)
     ref_buffered = gpd.GeoDataFrame(geometry=buffered_minus_original, crs=metro_gdf.crs)
     ref_buffered = ref_buffered.to_crs('EPSG:4326')
-    ref_buffered_path = 'Polygon_vectors/Metros/rural_refs/rural_ref_' + c + '_v02.shp'
+    ref_buffered_path = os.path.join(base_data_dir, 'Polygon_vectors/Metros/rural_refs/rural_ref_' + c + '_v02.shp')
     ref_buffered.to_file(ref_buffered_path)
 
     temp_mean = gdal.Open(raster_paths[1])
@@ -130,7 +130,7 @@ def calc_uhi_buffered(c_orig, month, buffer_size):
     clip_to_metro(raster_paths[1], c)
 
     urban_ref_stats = pygeo.zonal_statistics(base_raster_path_band = (re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), raster_paths[1]), 1),
-                                                        aggregate_vector_path ='Polygon_vectors/Metros/' + c + '.shp', 
+                                                        aggregate_vector_path =os.path.join(base_data_dir, 'Polygon_vectors/Metros/' + c + '.shp'), 
                                                         ignore_nodata = True)
     urban_max = urban_ref_stats[0]['max'] # using max of the averages here to get a baseline UHI change
     uhi = urban_max - rural_ref_temp
@@ -150,23 +150,27 @@ def prep_and_run_cooling(c):
         if not geom.is_valid:
             fixed_geom = geom.buffer(0)
             metro_gdf.at[index, 'geometry'] = fixed_geom
-    if os.path.exists('Polygon_vectors/Metros/' + c + '.gpkg') == 0:
-        metro_gdf.to_file('Polygon_vectors/Metros/' + c + '.gpkg')
-    if os.path.exists('Polygon_vectors/Metros/' + c + '.shp') == 0:
-        metro_gdf.to_file('Polygon_vectors/Metros/' + c + '.shp')
+    
+    metro_gpkg_path = os.path.join(base_data_dir, 'Polygon_vectors/Metros/' + c + '.gpkg')
+    metro_shp_path = os.path.join(base_data_dir, 'Polygon_vectors/Metros/' + c + '.shp')
+    
+    if os.path.exists(metro_gpkg_path) == 0:
+        metro_gdf.to_file(metro_gpkg_path)
+    if os.path.exists(metro_shp_path) == 0:
+        metro_gdf.to_file(metro_shp_path)
     
     year_list = ['2001', '2011', '2021']
         
     for year in year_list:    
         if year in ['2001', '2011']:
-            nlcd_path = 'NLCD/nlcd_' + year + '_land_cover_l48_20210604/nlcd_' + year + '_wgs84.tif'
+            nlcd_path = os.path.join(base_data_dir, 'NLCD/nlcd_' + year + '_land_cover_l48_20210604/nlcd_' + year + '_wgs84.tif')
         else:
-            nlcd_path = 'NLCD/nlcd_' + year + '_land_cover_l48_20230630/nlcd_' + year + '_wgs84.tif'
+            nlcd_path = os.path.join(base_data_dir, 'NLCD/nlcd_' + year + '_land_cover_l48_20230630/nlcd_' + year + '_wgs84.tif')
         
         nlcd_dataset = gdal.Open(nlcd_path) 
 
         gdal.Warp(re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), nlcd_path), 
-                            nlcd_dataset, cutlineDSName='Polygon_vectors/Metros/' + c + '.gpkg', cropToCutline=True)
+                            nlcd_dataset, cutlineDSName=metro_gpkg_path, cropToCutline=True)
         gdal.Warp(re.sub(r'\.(.*?)$', r'_clipped_{}_nad83.\1'.format(c), nlcd_path), 
                         re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), nlcd_path), dstSRS='EPSG:5070')
         
@@ -182,14 +186,14 @@ def prep_and_run_cooling(c):
             else:
                 avg_humid = (metro_gdf['M_AUG'].iloc[0] + metro_gdf['A_AUG'].iloc[0])/2
             
-            raster_paths = ['Evapotranspiration/Global-ET0_monthly_v3/Global-ET0_v3_monthly/et0_V3_' + month + '_aligned_wgs84.tif', 
-                            'Reference Air Temperature/PRISM_tmean_30yr_normal_800mM4_' + month + '_bil/PRISM_tmean_30yr_normal_800mM4_' + month + '_bil_wgs84.bil'] 
+            raster_paths = [os.path.join(base_data_dir, 'Evapotranspiration/Global-ET0_monthly_v3/Global-ET0_v3_monthly/et0_V3_' + month + '_aligned_wgs84.tif'), 
+                            os.path.join(base_data_dir, 'Reference Air Temperature/PRISM_tmean_30yr_normal_800mM4_' + month + '_bil/PRISM_tmean_30yr_normal_800mM4_' + month + '_bil_wgs84.bil')] 
 
             # Masking input rasters to metro
             for ras in raster_paths:
                 raster_dataset = gdal.Open(ras)
                 gdal.Warp(re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), ras), 
-                                raster_dataset, cutlineDSName='Polygon_vectors/Metros/' + c + '.gpkg', cropToCutline=True)
+                                raster_dataset, cutlineDSName=metro_gpkg_path, cropToCutline=True)
                 gdal.Warp(re.sub(r'\.(.*?)$', r'_clipped_{}_nad83.\1'.format(c), ras), 
                                 re.sub(r'\.(.*?)$', r'_clipped_{}.\1'.format(c), ras), dstSRS='EPSG:5070')
 
@@ -200,17 +204,17 @@ def prep_and_run_cooling(c):
             
             # Runnng the cooling Urban InVEST model
             args = {
-                'aoi_vector_path': 'Polygon_vectors/Metros/' + c + '.gpkg',
+                'aoi_vector_path': metro_gpkg_path,
                 'avg_rel_humidity': str(avg_humid),
-                'biophysical_table_path': 'Biophysical Tables/biophysical_cooling_v03.csv',
-                'building_vector_path': 'Built Infrastructure/Microsoft/Metros/' + c + '.gpkg', 
+                'biophysical_table_path': os.path.join(base_data_dir, 'Biophysical Tables/biophysical_cooling_v03.csv'),
+                'building_vector_path': os.path.join(base_data_dir, 'Built Infrastructure/Microsoft/Metros/' + c + '.gpkg'), 
                 'cc_method': 'factors',
                 'cc_weight_albedo': '',
                 'cc_weight_eti': '',
                 'cc_weight_shade': '',
                 'do_energy_valuation': False,
                 'do_productivity_valuation': False,
-                'energy_consumption_table_path': 'Energy Consumption Table/Metro tables/' + c + '.csv',
+                'energy_consumption_table_path': os.path.join(base_data_dir, 'Energy Consumption Table/Metro tables/' + c + '.csv'),
                 'green_area_cooling_distance': '50',
                 'lulc_raster_path': re.sub(r'\.(.*?)$', r'_clipped_{}_nad83.\1'.format(c), nlcd_path),
                 'n_workers': '-1',
@@ -219,7 +223,7 @@ def prep_and_run_cooling(c):
                 't_air_average_radius': '600',
                 't_ref': str(rural_ref_temp),
                 'uhi_max': str(uhi),
-                'workspace_dir': '../InVEST Results/cooling workspace/' + c,
+                'workspace_dir': os.path.join(base_data_dir, 'InVEST Results/cooling workspace/'),
                 }
             natcap.invest.urban_cooling_model.execute(args)
 
