@@ -154,73 +154,73 @@ def calc_monthly_temps_countries(month):
 #     pool.map(calc_monthly_temps_countries, months)
 
 
-# def calculate_mc():
-#     all_months = []
+def calculate_mc():
+    all_months = []
 
-#     for year in ['2019']:
-#         for month in [f'{i:02}' for i in range(1, 13)]:
-#             # csv_path = os.path.join(inputdir, f'Data/avg_temp_by_iso3_r250_{year}_{month}_wcode.csv')
+    for year in ['2019']:
+        for month in [f'{i:02}' for i in range(1, 13)]:
+            # csv_path = os.path.join(inputdir, f'Data/avg_temp_by_iso3_r250_{year}_{month}_wcode.csv')
 
-#             csv_path = os.path.join(inputdir, f'Data/avg_temp_by_iso3_r250_{year}_{month}.csv')
-#             df = pd.read_csv(csv_path)
+            csv_path = os.path.join(inputdir, f'Data/avg_temp_by_iso3_r250_{year}_{month}.csv')
+            df = pd.read_csv(csv_path)
 
-#             # compute CDD for that month
-#             df['cdd_m'] = monthly_temp_degC_to_cdd_smooth(df['avg_temp'])
-#             df['year'] = year
-#             df['month'] = month
-#             all_months.append(df[['iso3_r250_name', 'cdd_m', 'year', 'month']])
+            # compute CDD for that month
+            df['cdd_m'] = monthly_temp_degC_to_cdd_smooth(df['avg_temp'])
+            df['year'] = year
+            df['month'] = month
+            all_months.append(df[['iso3_r250_name', 'cdd_m', 'year', 'month']])
     
-#     # Combine all months
-#     all_data = pd.concat(all_months, ignore_index=True)
+    # Combine all months
+    all_data = pd.concat(all_months, ignore_index=True)
 
-#     # Aggregate to annual CDD by country (iso3)
-#     annual_data = (
-#         all_data.groupby('iso3_r250_name', as_index=False)['cdd_m']
-#         .sum()
-#         .rename(columns={'cdd_m': 'cdd'})
-#     )
+    # Aggregate to annual CDD by country (iso3)
+    annual_data = (
+        all_data.groupby('iso3_r250_name', as_index=False)['cdd_m']
+        .sum()
+        .rename(columns={'cdd_m': 'cdd'})
+    )
     
-#     energy_df = pd.read_excel(os.path.join(inputdir, 'Data/per-capita-energy-use/primary_energy_percap_cooling_share_2019_v2_nkd.xlsx'), 'primary_energy_percap_cooling_s')
-#     energy_df = energy_df[['entity', 'cooling_percap_2019', 'region_wb']]
+    energy_df = pd.read_excel(os.path.join(inputdir, 'Data/per-capita-energy-use/primary_energy_percap_cooling_share_2019_v2_nkd.xlsx'), 'primary_energy_percap_cooling_s')
+    energy_df = energy_df[['entity', 'cooling_percap_2019', 'region_wb']]
 
-#     # energy_cdd_df = pd.merge(annual_data, energy_df,
-#     #                         how='inner', left_on='iso3_r250_name', right_on='Entity') # grrrr.... merge by iso code or name?
+    # energy_cdd_df = pd.merge(annual_data, energy_df,
+    #                         how='inner', left_on='iso3_r250_name', right_on='Entity') # grrrr.... merge by iso code or name?
     
-#     annual_data['iso3_r250_name'] = (
-#         annual_data['iso3_r250_name']
-#         .astype(str)
-#         .str.strip()
-#         .str.upper()
-#     )
+    annual_data['iso3_r250_name'] = (
+        annual_data['iso3_r250_name']
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
 
-#     energy_df['iso3_r250_name'] = (
-#         energy_df['entity']
-#         .astype(str)
-#         .str.strip()
-#         .str.upper()
-#     )
-#     energy_cdd_df = pd.merge(annual_data, energy_df,
-#                         how='inner', on='iso3_r250_name') 
-#     print("Merged shape:", energy_cdd_df.shape)
-#     print(energy_cdd_df.head())
-#     print(energy_cdd_df.dtypes)
+    energy_df['iso3_r250_name'] = (
+        energy_df['entity']
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
+    energy_cdd_df = pd.merge(annual_data, energy_df,
+                        how='inner', on='iso3_r250_name') 
+    print("Merged shape:", energy_cdd_df.shape)
+    print(energy_cdd_df.head())
+    print(energy_cdd_df.dtypes)
 
-#     # Performing the regression and fitting the model
-#     # result = sm.OLS(energy_cdd_df['cooling_percap_2019'], energy_cdd_df['cdd']).fit()
+    # Performing the regression and fitting the model
+    # result = sm.OLS(energy_cdd_df['cooling_percap_2019'], energy_cdd_df['cdd']).fit()
 
-#     # Saving the coefficient as the cooling gradient m_c
-#     # mc = result.params[0]
-#     # print(result.summary())
-#     # print(mc)
-#     X = sm.add_constant(energy_cdd_df['cdd'])
-#     y = energy_cdd_df['cooling_percap_2019']
+    # Saving the coefficient as the cooling gradient m_c
+    # mc = result.params[0]
+    # print(result.summary())
+    # print(mc)
+    X = sm.add_constant(energy_cdd_df['cdd'])
+    y = energy_cdd_df['cooling_percap_2019']
 
-#     result = sm.OLS(y, X, missing='drop').fit()
-#     print(result.summary())
+    result = sm.OLS(y, X, missing='drop').fit()
+    print(result.summary())
 
-#     # Coefficient (slope)
-#     mc = result.params['cdd']
-#     print("m_c:", mc)
+    # Coefficient (slope)
+    mc = result.params['cdd']
+    print("m_c:", mc)
 
 
 # calculate_mc() 
@@ -449,52 +449,34 @@ def calculate_consumption_per_cdd_from_iea():
 
     return merged[["iso3_r250_name", "region_wb", "cooling_percap_2019", "cdd", "consumption_per_cdd"]]
 
-merged = calculate_consumption_per_cdd_from_iea()
+# merged = calculate_consumption_per_cdd_from_iea()
 
-print(merged.groupby('region_wb')['consumption_per_cdd'].mean())
-
-
-##### Merge consump_per_cdd_by_country with local_climate_regulation_gep_v02
-# consump_per_cdd = pd.read_csv(os.path.join(inputdir, 'Data/consumption_per_cdd_by_country.csv'))
-consump_per_cdd = pd.read_csv(os.path.join(inputdir, "Data/consumption_per_cdd_by_country_iea.csv"))
-old_results = pd.read_csv(os.path.join(inputdir, 'output/valuations/local_climate_regulation_gep_v02.csv'))
-
-consump_per_cdd['iso3_r250_name'] = consump_per_cdd['iso3_r250_name'].astype(str).str.strip().str.upper()
-old_results['iso3_r250_name'] = old_results['iso3_r250_name'].astype(str).str.strip().str.upper()
-
-merge_results = pd.merge(consump_per_cdd, old_results, on='iso3_r250_name')
-merge_results['local_climate_regulation'] = (
-    merge_results['local_climate_regulation']
-    .astype(str)
-    .str.replace(r'[\$,]', '', regex=True)  # remove $ and commas
-)
-
-merge_results['local_climate_regulation'] = pd.to_numeric(
-    merge_results['local_climate_regulation'], errors='coerce'
-)
-
-merge_results['without_mc'] = merge_results['local_climate_regulation']/1.71737465916468
-merge_results['with_country_mc'] = merge_results['without_mc']*merge_results['consumption_per_cdd']
-
-merge_results.to_csv(os.path.join(inputdir, 'output/valuations/local_climate_regulation_gep_newMC_iea.csv'))
+# print(merged.groupby('region_wb')['consumption_per_cdd'].mean())
 
 
+# ##### Merge consump_per_cdd_by_country with local_climate_regulation_gep_v02
+# # consump_per_cdd = pd.read_csv(os.path.join(inputdir, 'Data/consumption_per_cdd_by_country.csv'))
+# consump_per_cdd = pd.read_csv(os.path.join(inputdir, "Data/consumption_per_cdd_by_country_iea.csv"))
+# old_results = pd.read_csv(os.path.join(inputdir, 'output/valuations/local_climate_regulation_gep_v02.csv'))
 
+# consump_per_cdd['iso3_r250_name'] = consump_per_cdd['iso3_r250_name'].astype(str).str.strip().str.upper()
+# old_results['iso3_r250_name'] = old_results['iso3_r250_name'].astype(str).str.strip().str.upper()
 
+# merge_results = pd.merge(consump_per_cdd, old_results, on='iso3_r250_name')
+# merge_results['local_climate_regulation'] = (
+#     merge_results['local_climate_regulation']
+#     .astype(str)
+#     .str.replace(r'[\$,]', '', regex=True)  # remove $ and commas
+# )
 
+# merge_results['local_climate_regulation'] = pd.to_numeric(
+#     merge_results['local_climate_regulation'], errors='coerce'
+# )
 
+# merge_results['without_mc'] = merge_results['local_climate_regulation']/1.71737465916468
+# merge_results['with_country_mc'] = merge_results['without_mc']*merge_results['consumption_per_cdd']
 
-
-
-
-
-
-
-
-
-
-
-
+# merge_results.to_csv(os.path.join(inputdir, 'output/valuations/local_climate_regulation_gep_newMC_iea.csv'))
 
 # ### Fixing my energy savings valuation ### 
 
@@ -527,72 +509,44 @@ def process_combo(args):
 
     base_dir = os.path.join(inputdir, 'output/invest_results/', c)
 
-    # Delete unneeded files
-    # for f in os.listdir(base_dir):
-    #     if 'uhi_results' in f:
-    #         try:
-    #             os.remove(os.path.join(base_dir, f))
-    #         except:
-    #             pass
-
-    # Air mixing raster
-    hm_mixed_path = os.path.join(inputdir, f'output/mixed_output/hm_{c}_{year}_{month}_mixed_compress.tif')
-    hm_raster = rxr.open_rasterio(hm_mixed_path, masked=True)
-    avg_hm_mixed = hm_raster.mean().item()     # Averaging by urban area
-
     # Temperature with nature (observed) 
-    vector_results = gpd.read_file(os.path.join(inputdir, 'output/invest_results/' + c + '/uhi_results_' + c + '_' + year + '_' + month + '.shp'))
-    temp_w_nat = vector_results['avg_tmp_v'].iloc[0] # not positive if this is right
-    # print(temp_w_nat)
-    # Cooling valuation 
     uhi_df = pd.read_csv(os.path.join(inputdir, 'Data/uhi/uhi_global_gep_' + c + '.csv'))
-    uhi_max = uhi_df['t_ref'][(uhi_df['year'] == int(year)) & (uhi_df['month'] == int(month))].iloc[0]
-    avg_deg_cooling = uhi_max * avg_hm_mixed
-    temp_wo_nat = temp_w_nat + avg_deg_cooling
-    # print(temp_wo_nat)
 
-    # consump_saved_percap = (
-    #     temp_degC_to_cdd_smooth(temp_wo_nat) -
-    #     temp_degC_to_cdd_smooth(temp_w_nat)
-    # ) * mc * 0.05 # argentina approx 5% spent toward cooling
+    temp_wo_nat = uhi_df['t_max'][uhi_df['month'] == int(month)].iloc[0]
+    temp_w_nat = uhi_df['t_ref'][uhi_df['month'] == int(month)].iloc[0]
+    # print(temp_wo_nat, temp_w_nat)
     
-    # print('monthly_temp_degC_to_cdd_smooth(build_temp_wo_nat)', temp_degC_to_cdd_smooth(temp_wo_nat))
-    # print('monthly_temp_degC_to_cdd_smooth(build_temp_w_nat)', temp_degC_to_cdd_smooth(temp_w_nat))
-
     cdd_diff = temp_degC_to_cdd_smooth(temp_wo_nat) - temp_degC_to_cdd_smooth(temp_w_nat)
-    # print('cdd diff', cdd_diff)
+
     return cdd_diff
-    # results_dict = {
-    #     'metro': c,
-    #     'year': year,
-    #     'month': month,
-    #     'kwh_saved_percap': consump_saved_percap,
-    #     'dollars_saved': dollars_saved,
-    #     'avg_deg_cooling': avg_deg_cooling
-    # }
 
-    # pd.DataFrame.from_dict(results_dict, orient='index').to_csv(out_csv)
-
-# # process_combo(args=['30_168', '2019', '01'])
-
-# # for c in ['30_168']:
 def run_valuation_c(c):
     results = []  # store results from each loop
 
     # Read the urban shapefile once per city
     urban_gdf = gpd.read_file(os.path.join(inputdir, f'Data/Polygon_vectors/urbans/{c}.gpkg'))
     country_abbr = urban_gdf['ISO'].iloc[0]
-
     population = urban_gdf['GHSPOP_R23_2015'].iloc[0]
 
-    # Lookup country → ee_r264_id
-    ee_r264_country_ids = pd.read_csv(os.path.join(inputdir, 'Data/cartographic/ee/ee_r264_correspondence.csv'))
-    ee_r264_id = ee_r264_country_ids.loc[
-        ee_r264_country_ids['ee_r264_label'] == country_abbr, 'ee_r264_id'
+    # Lookup country → iso3_r250_id
+    iso3_r250_country_data = gpd.read_file(os.path.join(inputdir, 'Data/cartographic/ee/ee_r250_correspondence.gpkg'))
+    iso3_r250_id = iso3_r250_country_data.loc[
+        iso3_r250_country_data['iso3_r250_label'] == country_abbr, 'iso3_r250_id'
+    ].iloc[0]
+
+    iso3_r250_name = iso3_r250_country_data.loc[
+        iso3_r250_country_data['iso3_r250_label'] == country_abbr, 'iso3_r250_name'
     ].iloc[0]
 
     # Read electricity price data once
     price_data = pd.read_excel(os.path.join(inputdir, 'Data/electricity-price/WB_electricity_price_data.xlsx'), sheet_name='WB_price_data')
+
+    # Energy consumption per CDD by country
+    consump_data = pd.read_csv(os.path.join(inputdir, 'Data/consumption_per_cdd_by_country.csv'))
+
+    mc = consump_data.loc[
+        consump_data['entity'] == iso3_r250_name, 'consumption_per_cdd'
+    ].iloc[0]
 
     for year in ['2019']:
         for month in [f'{i:02}' for i in range(1, 13)]:
@@ -614,7 +568,7 @@ def run_valuation_c(c):
                 results.append({
                     'city': c,
                     'country_iso': country_abbr,
-                    'ee_r264_id': ee_r264_id,
+                    'iso3_r250_id': iso3_r250_id,
                     'year': year,
                     'month': month,
                     'cdd_diff': cdd_diff,
@@ -629,7 +583,7 @@ def run_valuation_c(c):
                 continue
 
     # Convert results to DataFrame and save to CSV
-    output_csv = os.path.join(inputdir, f'output/valuation/{c}_{year}.csv')
+    output_csv = os.path.join(inputdir, f'output/valuation_11_18_25/{c}_{year}.csv')
     
     if results:
         df = pd.DataFrame(results)

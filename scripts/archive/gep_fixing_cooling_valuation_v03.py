@@ -223,7 +223,7 @@ def calculate_mc():
     print("m_c:", mc)
 
 
-calculate_mc() 
+# calculate_mc() 
 # mc = 1.7173746591646857 
 
 # ### Fixing my energy savings valuation ### 
@@ -306,67 +306,67 @@ def process_combo(args):
 # # process_combo(args=['30_168', '2019', '01'])
 
 # # for c in ['30_168']:
-# def run_valuation_c(c):
-#     results = []  # store results from each loop
+def run_valuation_c(c):
+    results = []  # store results from each loop
 
-#     # Read the urban shapefile once per city
-#     urban_gdf = gpd.read_file(os.path.join(inputdir, f'Data/Polygon_vectors/urbans/{c}.gpkg'))
-#     country_abbr = urban_gdf['ISO'].iloc[0]
+    # Read the urban shapefile once per city
+    urban_gdf = gpd.read_file(os.path.join(inputdir, f'Data/Polygon_vectors/urbans/{c}.gpkg'))
+    country_abbr = urban_gdf['ISO'].iloc[0]
 
-#     population = urban_gdf['GHSPOP_R23_2015'].iloc[0]
+    population = urban_gdf['GHSPOP_R23_2015'].iloc[0]
 
-#     # Lookup country → ee_r264_id
-#     ee_r264_country_ids = pd.read_csv(os.path.join(inputdir, 'Data/cartographic/ee/ee_r264_correspondence.csv'))
-#     ee_r264_id = ee_r264_country_ids.loc[
-#         ee_r264_country_ids['ee_r264_label'] == country_abbr, 'ee_r264_id'
-#     ].iloc[0]
+    # Lookup country → ee_r264_id
+    ee_r264_country_ids = pd.read_csv(os.path.join(inputdir, 'Data/cartographic/ee/ee_r264_correspondence.csv'))
+    ee_r264_id = ee_r264_country_ids.loc[
+        ee_r264_country_ids['ee_r264_label'] == country_abbr, 'ee_r264_id'
+    ].iloc[0]
 
-#     # Read electricity price data once
-#     price_data = pd.read_excel(os.path.join(inputdir, 'Data/electricity-price/WB_electricity_price_data.xlsx'), sheet_name='WB_price_data')
+    # Read electricity price data once
+    price_data = pd.read_excel(os.path.join(inputdir, 'Data/electricity-price/WB_electricity_price_data.xlsx'), sheet_name='WB_price_data')
 
-#     for year in ['2019']:
-#         for month in [f'{i:02}' for i in range(1, 13)]:
-#             try:
-#                 price_cents = price_data.loc[
-#                     (price_data['Economy ISO3'] == country_abbr) & 
-#                     (price_data['Year'] == int(year)),
-#                     'Price (Nominal USD cents per kWh)'
-#                 ].iloc[0]
-#                 price = price_cents / 100
+    for year in ['2019']:
+        for month in [f'{i:02}' for i in range(1, 13)]:
+            try:
+                price_cents = price_data.loc[
+                    (price_data['Economy ISO3'] == country_abbr) & 
+                    (price_data['Year'] == int(year)),
+                    'Price (Nominal USD cents per kWh)'
+                ].iloc[0]
+                price = price_cents / 100
 
-#                 cdd_diff = process_combo([c, year, month])
-#                 kwh_diff = cdd_diff * mc
-#                 savings_percap = kwh_diff * price
+                cdd_diff = process_combo([c, year, month])
+                kwh_diff = cdd_diff * mc
+                savings_percap = kwh_diff * price
                 
-#                 total_savings = savings_percap*population
+                total_savings = savings_percap*population
 
-#                 # append results as dict
-#                 results.append({
-#                     'city': c,
-#                     'country_iso': country_abbr,
-#                     'ee_r264_id': ee_r264_id,
-#                     'year': year,
-#                     'month': month,
-#                     'cdd_diff': cdd_diff,
-#                     'kwh_diff': kwh_diff,
-#                     'price_usd_per_kwh': price,
-#                     'savings_percap_usd': savings_percap,
-#                     'total_savings_usd': total_savings
-#                 })
+                # append results as dict
+                results.append({
+                    'city': c,
+                    'country_iso': country_abbr,
+                    'ee_r264_id': ee_r264_id,
+                    'year': year,
+                    'month': month,
+                    'cdd_diff': cdd_diff,
+                    'kwh_diff': kwh_diff,
+                    'price_usd_per_kwh': price,
+                    'savings_percap_usd': savings_percap,
+                    'total_savings_usd': total_savings
+                })
 
-#             except Exception as e:
-#                 print(f"Error processing {c} {year}-{month}: {e}")
-#                 continue
+            except Exception as e:
+                print(f"Error processing {c} {year}-{month}: {e}")
+                continue
 
-#     # Convert results to DataFrame and save to CSV
-#     output_csv = os.path.join(inputdir, f'output/valuation/{c}_{year}.csv')
+    # Convert results to DataFrame and save to CSV
+    output_csv = os.path.join(inputdir, f'output/valuation/{c}_{year}.csv')
     
-#     if results:
-#         df = pd.DataFrame(results)
-#         df.to_csv(output_csv, index=False)
-#         print(f"Saved results for {c} to {output_csv}")
-#     else:
-#         print(f"No results for {c}")
+    if results:
+        df = pd.DataFrame(results)
+        df.to_csv(output_csv, index=False)
+        print(f"Saved results for {c} to {output_csv}")
+    else:
+        print(f"No results for {c}")
         
 
 

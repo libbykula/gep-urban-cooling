@@ -20,11 +20,15 @@ def delete_files_for_urban_area(urban_id: str):
         f"Data/uhi/uhi_global_gep_{urban_id}.csv",
         f"Data/lulc/lulc_glc_fcs30d_2019_clipped_{urban_id}.tif",
         f"Data/Lulc_glc_fcs30d_2019_clipped_{urban_id}_mollweide.tif",
+        f"Data/population/global_pop_2019_CN_1km_R2025A_UA_v1_clipped_{urban_id}.tif"
     ]
 
     # Month-dependent patterns (01–12)
     month_patterns = [
         f"Data/Tmean_stitched/tmean_stitched_2019_{{month}}_compress_rural_ref_{urban_id}.tif",
+        f"Data/Tmean_stitched/tmean_stitched_2019_{{month}}_compress_fixed_clipped_{urban_id}.tif",
+        f"Data/Tmean_stitched/tmean_stitched_2019_{{month}}_compress_fixed_clipped_{urban_id}_cdd_diff_{urban_id}.tif",
+        f"Data/Tmean_stitched/tmean_stitched_2019_{{month}}_compress_fixed_clipped_{urban_id}_cdd_pop_diff_{urban_id}.tif",
         f"output/mixed_output/hm_{urban_id}_2019_{{month}}_mixed_compress.tif",
         f"Data/Evapotranspiration/Global-ET0_monthly_v3/Global-ET0_v3_monthly/et0_V3_{{month}}_clipped_{urban_id}.tif",
         f"Data/Evapotranspiration/Global-ET0_monthly_v3/Global-ET0_v3_monthly/et0_V3_{{month}}_clipped_{urban_id}_mollweide.tif",
