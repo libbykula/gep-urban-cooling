@@ -247,7 +247,7 @@ def run(c):
 
 def get_cdd_diff(args):
     c, year, month = args
-    out_csv = os.path.join(inputdir, f'valuation_6_30_2026/{c}_{year}_{month}.csv')
+    out_csv = os.path.join(inputdir, f'valuation_11_03_2026/{c}_{year}_{month}.csv')
     # if os.path.exists(out_csv):
     #     return
 
@@ -368,7 +368,7 @@ def run_valuation_c(c):
             #     continue
 
     # Convert results to DataFrame and save to CSV
-    output_csv = os.path.join(inputdir, f'output/valuation_6_30_2026/{c}_{year}.csv')
+    output_csv = os.path.join(inputdir, f'output/valuation_11_03_2026/{c}_{year}.csv')
     
     if results:
         df = pd.DataFrame(results)

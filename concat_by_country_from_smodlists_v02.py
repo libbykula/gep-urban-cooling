@@ -23,9 +23,9 @@ import pandas as pd
 
 BASE_DIR = "/users/3/kula0049/urban-cooling"
 SMOD_LIST_DIR = os.path.join(BASE_DIR, "Data", "urbanspatial-guppd-v1-gpkg")
-VALUATION_DIR = os.path.join(BASE_DIR, "output", "valuation_10_12_2026")
-OUT_SUMMARY_DIR = os.path.join(BASE_DIR, "output", "valuations_10_12_2026", "summaries")
-OUT_MERGED_DIR = os.path.join(BASE_DIR, "output", "valuations_10_12_2026", "merged")
+VALUATION_DIR = os.path.join(BASE_DIR, "output", "valuation_11_03_2026")
+OUT_SUMMARY_DIR = os.path.join(BASE_DIR, "output", "valuations_11_03_2026", "summaries")
+OUT_MERGED_DIR = os.path.join(BASE_DIR, "output", "valuations_11_03_2026", "merged")
 
 os.makedirs(OUT_SUMMARY_DIR, exist_ok=True)
 os.makedirs(OUT_MERGED_DIR, exist_ok=True)
